@@ -37,7 +37,7 @@ type IntOrInf
 type alias MinimaxParams position move =
     { maxDepth : Int
     , valueFunc : Node position move -> Int
-    , moveFunc : Node position move -> move -> position
+    , moveFunc : move -> position -> position
     , possibleMovesFunc : Node position move -> List move
     }
 
@@ -67,7 +67,7 @@ type alias Node position move =
 
 {-| Run minimax and returns Node represents "best move" over the search tree.
 
-  - **apply** - is a function that takes a node and one of its edges, and returns the following node.
+  - **apply** - is a function that takes a positon and applies a move.
   - **eval** - returns value of node.
   - **possibleMoves** - returns all possible edges from given node.
   - **start** - defines a root of search tree.
@@ -75,7 +75,7 @@ type alias Node position move =
 
 -}
 minimax :
-    { apply : Node position move -> move -> position
+    { apply : move -> position -> position
     , eval : Node position move -> Int
     , possibleMoves : Node position move -> List move
     , start : position
@@ -95,7 +95,7 @@ minimax args =
         }
 
 
-minimaxParams_ : (Node position move -> move -> position) -> (Node position move -> Int) -> (Node position move -> List move) -> Int -> MinimaxParams position move
+minimaxParams_ : (move -> position -> position) -> (Node position move -> Int) -> (Node position move -> List move) -> Int -> MinimaxParams position move
 minimaxParams_ moveFunc valueFunc possibleMovesFunc maxDepth =
     { maxDepth = maxDepth
     , valueFunc = valueFunc
@@ -180,7 +180,7 @@ descendants minimaxParams node moves =
                     (minimax_ minimaxParams
                         { node
                             | nodeType = swapType node.nodeType -- the node type alternates
-                            , position = minimaxParams.moveFunc node move -- compute new position (old position + move)
+                            , position = minimaxParams.moveFunc move node.position -- compute new position (old position + move)
                             , move = Just move -- remember move to parent
                             , value =
                                 if node.nodeType == Max then

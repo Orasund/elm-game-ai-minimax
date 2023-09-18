@@ -102,9 +102,9 @@ nodeEquals node move value =
     (node.move == move) && (node.value == value)
 
 
-moveFunc : Node String Char -> Char -> String
-moveFunc node move =
-    node.position ++ String.fromChar move
+moveFunc : Char -> String -> String
+moveFunc move position =
+    position ++ String.fromChar move
 
 
 valueFunc : Node String Char -> Int

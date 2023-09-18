@@ -31,9 +31,9 @@ nodeEquals node move =
     node.move == move
 
 
-moveFunc : Node Int Int -> Int -> Int
-moveFunc node taken =
-    node.position - taken
+moveFunc : Int -> Int -> Int
+moveFunc taken position =
+    position - taken
 
 
 valueFunc : Node Int Int -> Int
