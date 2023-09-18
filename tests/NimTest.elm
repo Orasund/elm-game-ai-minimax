@@ -39,14 +39,11 @@ moveFunc taken position =
 valueFunc : Node Int Int -> Int
 valueFunc node =
     if node.position == 0 then
-        if node.depth |> modBy 2 |> (==) 0 then
-            10
-
-        else
-            0
+        --Lost
+        -1
 
     else
-        5
+        0
 
 
 possibleMovesFunc : Int -> List Int
