@@ -1,6 +1,7 @@
 module MinMaxSearch exposing
     ( Node, minimax
-    , NodeType(..), IntegerExt(..)
+    , NodeType(..)
+    , IntOrInf(..)
     )
 
 {-| This library implements minimax algorithm with alpha-beta pruning.
@@ -27,10 +28,10 @@ type NodeType
 
 {-| It extends standard Number about positive/negative infinity.
 -}
-type IntegerExt a
+type IntOrInf
     = Pos_Inf
     | Neg_Inf
-    | Number a
+    | Number Int
 
 
 type alias MinimaxParams position move =
@@ -43,15 +44,13 @@ type alias MinimaxParams position move =
 
 {-| Represents a node in the search tree.
 
-    type alias Node position move =
-        { nodeType : NodeType -- MIN or MAX, it alternates throughout search tree levels (root is MAX, nodes at second level are MIN, nodes at third level are MAX, etc.)
-        , position : position -- it tells what a solving problem's state is represented by this Node
-        , move : Maybe move -- last move (an egde to nearest parent's node, or to best "move" node for root)
-        , value : IntegerExt Int -- value of node (IntegerExt extends Int about positive/negative infinity)
-        , alpha : IntegerExt Int -- alpha (IntegerExt extends Int about positive/negative infinity)
-        , beta : IntegerExt Int -- beta (IntegerExt extends Int about positive/negative infinity)
-        , depth : Int -- depth of node (root node has 1)
-        }
+  - **nodeType** -- MIN or MAX, it alternates throughout search tree levels (root is MAX, nodes at second level are MIN, nodes at third level are MAX, etc.)
+  - **position** -- it tells what a solving problem's state is represented by this Node
+  - **move** -- last move (an egde to nearest parent's node, or to best "move" node for root)
+  - **value** -- value of node
+  - **alpha** -- alpha
+  - **beta** -- beta
+  - **depth** -- depth of node (root node has 1)
 
 -}
 type alias Node position move =
@@ -59,9 +58,9 @@ type alias Node position move =
     { nodeType : NodeType
     , position : position
     , move : Maybe move
-    , value : IntegerExt Int
-    , alpha : IntegerExt Int
-    , beta : IntegerExt Int
+    , value : IntOrInf
+    , alpha : IntOrInf
+    , beta : IntOrInf
     , depth : Int
     }
 
@@ -250,7 +249,7 @@ sortAscending node1 node2 =
         GT
 
 
-max : IntegerExt Int -> IntegerExt Int -> IntegerExt Int
+max : IntOrInf -> IntOrInf -> IntOrInf
 max a b =
     if great a b then
         a
@@ -259,7 +258,7 @@ max a b =
         b
 
 
-min : IntegerExt Int -> IntegerExt Int -> IntegerExt Int
+min : IntOrInf -> IntOrInf -> IntOrInf
 min a b =
     if less a b then
         a
@@ -268,17 +267,17 @@ min a b =
         b
 
 
-less : IntegerExt Int -> IntegerExt Int -> Bool
+less : IntOrInf -> IntOrInf -> Bool
 less a b =
     not (great a b) && not (equals a b)
 
 
-equals : IntegerExt Int -> IntegerExt Int -> Bool
+equals : IntOrInf -> IntOrInf -> Bool
 equals a b =
     a == b
 
 
-great : IntegerExt Int -> IntegerExt Int -> Bool
+great : IntOrInf -> IntOrInf -> Bool
 great a b =
     case a of
         Pos_Inf ->

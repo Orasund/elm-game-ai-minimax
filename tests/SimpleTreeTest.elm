@@ -97,7 +97,7 @@ suite =
 --8 5   6    4   1 2   3 5  6 2  3   5 7 1        max
 
 
-nodeEquals : Node String Char -> Maybe Char -> IntegerExt Int -> Bool
+nodeEquals : Node String Char -> Maybe Char -> IntOrInf -> Bool
 nodeEquals node move value =
     (node.move == move) && (node.value == value)
 
