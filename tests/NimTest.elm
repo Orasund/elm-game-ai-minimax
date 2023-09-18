@@ -49,9 +49,9 @@ valueFunc node =
         5
 
 
-possibleMovesFunc : Node Int Int -> List Int
-possibleMovesFunc node =
-    case node.position of
+possibleMovesFunc : Int -> List Int
+possibleMovesFunc position =
+    case position of
         0 ->
             []
 

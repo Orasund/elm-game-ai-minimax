@@ -204,14 +204,14 @@ valueFunc node =
             0
 
 
-possibleMovesFuncEmpty : Node String Char -> List Char
+possibleMovesFuncEmpty : String -> List Char
 possibleMovesFuncEmpty _ =
     []
 
 
-possibleMovesFunc : Node String Char -> List Char
-possibleMovesFunc node =
-    case node.position of
+possibleMovesFunc : String -> List Char
+possibleMovesFunc position =
+    case position of
         "" ->
             [ '0', '1' ]
 

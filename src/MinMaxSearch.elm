@@ -1,7 +1,6 @@
 module MinMaxSearch exposing
     ( Node, minimax
-    , NodeType(..)
-    , IntOrInf(..)
+    , NodeType(..), IntOrInf(..)
     )
 
 {-| This library implements minimax algorithm with alpha-beta pruning.
@@ -14,7 +13,7 @@ module MinMaxSearch exposing
 
 # Second stuff
 
-@docs NodeType, IntegerExt
+@docs NodeType, IntOrInf
 
 -}
 
@@ -38,13 +37,13 @@ type alias MinimaxParams position move =
     { maxDepth : Int
     , valueFunc : Node position move -> Int
     , moveFunc : move -> position -> position
-    , possibleMovesFunc : Node position move -> List move
+    , possibleMovesFunc : position -> List move
     }
 
 
 {-| Represents a node in the search tree.
 
-  - **nodeType** -- MIN or MAX, it alternates throughout search tree levels (root is MAX, nodes at second level are MIN, nodes at third level are MAX, etc.)
+  - **isYourTurn** -- if true, the algorithm will maximize the value, else it will minimize it.
   - **position** -- it tells what a solving problem's state is represented by this Node
   - **move** -- last move (an egde to nearest parent's node, or to best "move" node for root)
   - **value** -- value of node
@@ -55,7 +54,7 @@ type alias MinimaxParams position move =
 -}
 type alias Node position move =
     -- node state
-    { nodeType : NodeType
+    { isYourTurn : Bool
     , position : position
     , move : Maybe move
     , value : IntOrInf
@@ -77,7 +76,7 @@ type alias Node position move =
 minimax :
     { apply : move -> position -> position
     , eval : Node position move -> Int
-    , possibleMoves : Node position move -> List move
+    , possibleMoves : position -> List move
     , start : position
     , searchDepth : Int
     }
@@ -85,7 +84,7 @@ minimax :
 minimax args =
     minimax_ (minimaxParams_ args.apply args.eval args.possibleMoves args.searchDepth)
         -- initial state - root of minimax tree
-        { nodeType = Max
+        { isYourTurn = True
         , position = args.start
         , move = Nothing
         , value = Neg_Inf
@@ -95,7 +94,7 @@ minimax args =
         }
 
 
-minimaxParams_ : (move -> position -> position) -> (Node position move -> Int) -> (Node position move -> List move) -> Int -> MinimaxParams position move
+minimaxParams_ : (move -> position -> position) -> (Node position move -> Int) -> (position -> List move) -> Int -> MinimaxParams position move
 minimaxParams_ moveFunc valueFunc possibleMovesFunc maxDepth =
     { maxDepth = maxDepth
     , valueFunc = valueFunc
@@ -110,15 +109,13 @@ minimax_ minimaxParams node =
         -- end recursion, we don't want to dive further, compute the node value by position that is holded
         leafValue minimaxParams node
 
-    else
-        case node.nodeType of
-            -- node with highest value wins
-            Max ->
-                nodeValue minimaxParams node sortDescending
+    else if node.isYourTurn then
+        -- node with highest value wins
+        nodeValue minimaxParams node sortDescending
 
-            -- node with lowest value wins
-            Min ->
-                nodeValue minimaxParams node sortAscending
+    else
+        -- node with lowest value wins
+        nodeValue minimaxParams node sortAscending
 
 
 leafValue : MinimaxParams p m -> Node p m -> Node p m
@@ -135,7 +132,7 @@ nodeValue : MinimaxParams p m -> Node p m -> (Node p m -> Node p m -> Order) -> 
 nodeValue minimaxParams node sortFunc =
     let
         firstNode_ =
-            descendants minimaxParams node (minimaxParams.possibleMovesFunc node)
+            descendants minimaxParams node (minimaxParams.possibleMovesFunc node.position)
                 |> List.sortWith sortFunc
                 |> List.head
     in
@@ -179,11 +176,11 @@ descendants minimaxParams node moves =
                     node
                     (minimax_ minimaxParams
                         { node
-                            | nodeType = swapType node.nodeType -- the node type alternates
+                            | isYourTurn = not node.isYourTurn -- the node type alternates
                             , position = minimaxParams.moveFunc move node.position -- compute new position (old position + move)
                             , move = Just move -- remember move to parent
                             , value =
-                                if node.nodeType == Max then
+                                if node.isYourTurn then
                                     Pos_Inf
 
                                 else
@@ -202,14 +199,14 @@ merge : MinimaxParams p m -> Node p m -> Node p m -> List m -> List (Node p m)
 merge minimaxParams parent previousSibling moves =
     let
         alpha =
-            if parent.nodeType == Max then
+            if parent.isYourTurn then
                 max parent.alpha previousSibling.alpha
 
             else
                 parent.alpha
 
         beta =
-            if parent.nodeType == Min then
+            if not parent.isYourTurn then
                 min parent.beta previousSibling.beta
 
             else
@@ -220,16 +217,6 @@ merge minimaxParams parent previousSibling moves =
 
 
 -- HELPER FUNCTIONS
-
-
-swapType : NodeType -> NodeType
-swapType t =
-    case t of
-        Min ->
-            Max
-
-        Max ->
-            Min
 
 
 sortDescending : Node p m -> Node p m -> Order
