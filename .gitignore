@@ -3,3 +3,4 @@ build/
 tests/build/
 test/elm-stuff/
 documentation.json
+node_modules
