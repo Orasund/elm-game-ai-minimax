@@ -1,6 +1,6 @@
 module MinMaxSearch exposing
-    ( Node, minimax
-    , NodeType(..), IntOrInf(..)
+    ( Node, minimax, IntOrInf(..)
+    , infinity, minusInfinity
     )
 
 {-| This library implements minimax algorithm with alpha-beta pruning.
@@ -8,21 +8,9 @@ module MinMaxSearch exposing
 
 # Basic stuff
 
-@docs Node, minimax
-
-
-# Second stuff
-
-@docs NodeType, IntOrInf
+@docs Node, minimax, IntOrInf
 
 -}
-
-
-{-| Represents a node type.
--}
-type NodeType
-    = Min
-    | Max
 
 
 {-| It extends standard Number about positive/negative infinity.
@@ -33,9 +21,19 @@ type IntOrInf
     | Number Int
 
 
+infinity : IntOrInf
+infinity =
+    Pos_Inf
+
+
+minusInfinity : IntOrInf
+minusInfinity =
+    Neg_Inf
+
+
 type alias MinimaxParams position move =
     { maxDepth : Int
-    , valueFunc : Node position move -> Int
+    , valueFunc : position -> IntOrInf
     , moveFunc : move -> position -> position
     , possibleMovesFunc : position -> List move
     }
@@ -53,7 +51,6 @@ type alias MinimaxParams position move =
 
 -}
 type alias Node position move =
-    -- node state
     { isYourTurn : Bool
     , position : position
     , move : Maybe move
@@ -75,32 +72,29 @@ type alias Node position move =
 -}
 minimax :
     { apply : move -> position -> position
-    , eval : Node position move -> Int
+    , eval : position -> IntOrInf
     , possibleMoves : position -> List move
     , start : position
     , searchDepth : Int
     }
-    -> Node position move
+    -> Maybe move
 minimax args =
-    minimax_ (minimaxParams_ args.apply args.eval args.possibleMoves args.searchDepth)
-        -- initial state - root of minimax tree
-        { isYourTurn = True
-        , position = args.start
-        , move = Nothing
-        , value = Neg_Inf
-        , alpha = Neg_Inf
-        , beta = Pos_Inf
-        , depth = 0
-        }
-
-
-minimaxParams_ : (move -> position -> position) -> (Node position move -> Int) -> (position -> List move) -> Int -> MinimaxParams position move
-minimaxParams_ moveFunc valueFunc possibleMovesFunc maxDepth =
-    { maxDepth = maxDepth
-    , valueFunc = valueFunc
-    , moveFunc = moveFunc
-    , possibleMovesFunc = possibleMovesFunc
+    -- initial state - root of minimax tree
+    { isYourTurn = True
+    , position = args.start
+    , move = Nothing
+    , value = Neg_Inf
+    , alpha = Neg_Inf
+    , beta = Pos_Inf
+    , depth = 0
     }
+        |> minimax_
+            { moveFunc = args.apply
+            , valueFunc = args.eval
+            , possibleMovesFunc = args.possibleMoves
+            , maxDepth = args.searchDepth
+            }
+        |> .move
 
 
 minimax_ : MinimaxParams p m -> Node p m -> Node p m
@@ -122,7 +116,7 @@ leafValue : MinimaxParams p m -> Node p m -> Node p m
 leafValue minimaxParams node =
     let
         value =
-            Number (minimaxParams.valueFunc node)
+            minimaxParams.valueFunc node.position
     in
     -- setup it to node and also as alpha/beta constraints
     { node | value = value, alpha = value, beta = value }
@@ -229,7 +223,7 @@ sortAscending node1 node2 =
     if less node1.value node2.value then
         LT
 
-    else if equals node1.value node2.value then
+    else if node1.value == node2.value then
         EQ
 
     else
@@ -256,12 +250,7 @@ min a b =
 
 less : IntOrInf -> IntOrInf -> Bool
 less a b =
-    not (great a b) && not (equals a b)
-
-
-equals : IntOrInf -> IntOrInf -> Bool
-equals a b =
-    a == b
+    not (great a b) && not (a == b)
 
 
 great : IntOrInf -> IntOrInf -> Bool

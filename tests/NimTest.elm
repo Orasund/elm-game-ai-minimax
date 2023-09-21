@@ -8,27 +8,43 @@ import Test exposing (..)
 suite : Test
 suite =
     describe "NimTest.elm"
-        [ test "Nim Test" <|
+        [ test "Nim Test - 5" <|
             \() ->
                 Expect.equal
-                    (nodeEquals
-                        (MinMaxSearch.minimax
-                            { apply = moveFunc
-                            , eval = valueFunc
-                            , possibleMoves = possibleMovesFunc
-                            , start = startPosition
-                            , searchDepth = maxDepth
-                            }
-                        )
-                        (Just 1)
+                    (MinMaxSearch.minimax
+                        { apply = moveFunc
+                        , eval = valueFunc
+                        , possibleMoves = possibleMovesFunc
+                        , start = 5
+                        , searchDepth = maxDepth
+                        }
                     )
-                    True
+                    (Just 1)
+        , test "Nim Test - 4" <|
+            \() ->
+                Expect.equal
+                    (MinMaxSearch.minimax
+                        { apply = moveFunc
+                        , eval = valueFunc
+                        , possibleMoves = possibleMovesFunc
+                        , start = 4
+                        , searchDepth = maxDepth
+                        }
+                    )
+                    (Just 3)
+        , test "Nim Test - 3" <|
+            \() ->
+                Expect.equal
+                    (MinMaxSearch.minimax
+                        { apply = moveFunc
+                        , eval = valueFunc
+                        , possibleMoves = possibleMovesFunc
+                        , start = 3
+                        , searchDepth = maxDepth
+                        }
+                    )
+                    (Just 2)
         ]
-
-
-nodeEquals : Node Int Int -> Maybe Int -> Bool
-nodeEquals node move =
-    node.move == move
 
 
 moveFunc : Int -> Int -> Int
@@ -36,14 +52,13 @@ moveFunc taken position =
     position - taken
 
 
-valueFunc : Node Int Int -> Int
-valueFunc node =
-    if node.position == 0 then
-        --Lost
-        -1
+valueFunc : Int -> IntOrInf
+valueFunc position =
+    if position == 0 then
+        MinMaxSearch.minusInfinity
 
     else
-        0
+        Number 0
 
 
 possibleMovesFunc : Int -> List Int
@@ -56,15 +71,10 @@ possibleMovesFunc position =
             [ 1 ]
 
         2 ->
-            [ 1, 2 ]
+            [ 2, 1 ]
 
         _ ->
-            [ 1, 2, 3 ]
-
-
-startPosition : Int
-startPosition =
-    5
+            [ 3, 2, 1 ]
 
 
 maxDepth : Int
