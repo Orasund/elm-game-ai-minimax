@@ -1,8 +1,16 @@
 module NimTest exposing (..)
 
 import Expect
-import MinMaxSearch exposing (..)
+import MinimaxSearch exposing (..)
 import Test exposing (..)
+
+
+options =
+    { apply = moveFunc
+    , evaluate = valueFunc
+    , possibleMoves = possibleMovesFunc
+    , searchDepth = maxDepth
+    }
 
 
 suite : Test
@@ -11,38 +19,21 @@ suite =
         [ test "Nim Test - 5" <|
             \() ->
                 Expect.equal
-                    (MinMaxSearch.minimax
-                        { apply = moveFunc
-                        , eval = valueFunc
-                        , possibleMoves = possibleMovesFunc
-                        , start = 5
-                        , searchDepth = maxDepth
-                        }
+                    (MinimaxSearch.findBestMove options
+                        5
                     )
                     (Just 1)
         , test "Nim Test - 4" <|
             \() ->
                 Expect.equal
-                    (MinMaxSearch.minimax
-                        { apply = moveFunc
-                        , eval = valueFunc
-                        , possibleMoves = possibleMovesFunc
-                        , start = 4
-                        , searchDepth = maxDepth
-                        }
+                    (MinimaxSearch.findBestMove options
+                        4
                     )
                     (Just 3)
         , test "Nim Test - 3" <|
             \() ->
                 Expect.equal
-                    (MinMaxSearch.minimax
-                        { apply = moveFunc
-                        , eval = valueFunc
-                        , possibleMoves = possibleMovesFunc
-                        , start = 3
-                        , searchDepth = maxDepth
-                        }
-                    )
+                    (MinimaxSearch.findBestMove options 3)
                     (Just 2)
         ]
 
@@ -52,13 +43,13 @@ moveFunc taken position =
     position - taken
 
 
-valueFunc : Int -> IntOrInf
+valueFunc : Int -> Evaluation
 valueFunc position =
     if position == 0 then
-        MinMaxSearch.minusInfinity
+        Winning
 
     else
-        Number 0
+        Score 0
 
 
 possibleMovesFunc : Int -> List Int

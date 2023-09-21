@@ -1,7 +1,7 @@
 module SimpleTreeTest exposing (..)
 
 import Expect
-import MinMaxSearch exposing (..)
+import MinimaxSearch exposing (..)
 import Test exposing (..)
 
 
@@ -11,67 +11,51 @@ suite =
         [ test "MiniMax Test Depth 4." <|
             \() ->
                 Expect.equal
-                    (nodeEquals
-                        (MinMaxSearch.minimax
-                            { apply = moveFunc
-                            , eval = valueFunc
-                            , possibleMoves = possibleMovesFunc
-                            , start = ""
-                            , searchDepth = 4
-                            }
-                        )
-                        (Just '0')
-                        (Number 4)
+                    (MinimaxSearch.findBestMove
+                        { apply = moveFunc
+                        , evaluate = valueFunc
+                        , possibleMoves = possibleMovesFunc
+                        , searchDepth = 4
+                        }
+                        ""
                     )
-                    True
+                    ('0' |> Just)
         , test "MiniMax Test Depth 2." <|
             \() ->
                 Expect.equal
-                    (nodeEquals
-                        (MinMaxSearch.minimax
-                            { apply = moveFunc
-                            , eval = valueFunc
-                            , possibleMoves = possibleMovesFunc
-                            , start = ""
-                            , searchDepth = 2
-                            }
-                        )
-                        (Just '0')
-                        (Number 4)
+                    (MinimaxSearch.findBestMove
+                        { apply = moveFunc
+                        , evaluate = valueFunc
+                        , possibleMoves = possibleMovesFunc
+                        , searchDepth = 2
+                        }
+                        ""
                     )
-                    True
+                    ('0' |> Just)
         , test "MiniMax Test Depth 1." <|
             \() ->
                 Expect.equal
-                    (nodeEquals
-                        (MinMaxSearch.minimax
-                            { apply = moveFunc
-                            , eval = valueFunc
-                            , possibleMoves = possibleMovesFunc
-                            , start = ""
-                            , searchDepth = 1
-                            }
-                        )
-                        (Just '1')
-                        (Number 5)
+                    (MinimaxSearch.findBestMove
+                        { apply = moveFunc
+                        , evaluate = valueFunc
+                        , possibleMoves = possibleMovesFunc
+                        , searchDepth = 1
+                        }
+                        ""
                     )
-                    True
+                    ('1' |> Just)
         , test "MiniMax Test Depth 2. No possible moves" <|
             \() ->
                 Expect.equal
-                    (nodeEquals
-                        (MinMaxSearch.minimax
-                            { apply = moveFunc
-                            , eval = valueFunc
-                            , possibleMoves = possibleMovesFuncEmpty
-                            , start = ""
-                            , searchDepth = 2
-                            }
-                        )
-                        Nothing
-                        Neg_Inf
+                    (MinimaxSearch.findBestMove
+                        { apply = moveFunc
+                        , evaluate = valueFunc
+                        , possibleMoves = possibleMovesFuncEmpty
+                        , searchDepth = 2
+                        }
+                        ""
                     )
-                    True
+                    Nothing
         ]
 
 
@@ -97,19 +81,14 @@ suite =
 --8 5   6    4   1 2   3 5  6 2  3   5 7 1        max
 
 
-nodeEquals : Node String Char -> Maybe Char -> IntOrInf -> Bool
-nodeEquals node move value =
-    (node.move == move) && (node.value == value)
-
-
 moveFunc : Char -> String -> String
 moveFunc move position =
     position ++ String.fromChar move
 
 
-valueFunc : String -> IntOrInf
+valueFunc : String -> Evaluation
 valueFunc position =
-    Number <|
+    Score <|
         case position of
             "" ->
                 5
