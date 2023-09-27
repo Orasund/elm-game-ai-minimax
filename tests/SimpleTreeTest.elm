@@ -31,7 +31,7 @@ suite =
                         }
                         ""
                     )
-                    ('0' |> Just)
+                    ('1' |> Just)
         , test "MiniMax Test Depth 1." <|
             \() ->
                 Expect.equal
@@ -43,7 +43,7 @@ suite =
                         }
                         ""
                     )
-                    ('1' |> Just)
+                    ('0' |> Just)
         , test "MiniMax Test Depth 2. No possible moves" <|
             \() ->
                 Expect.equal

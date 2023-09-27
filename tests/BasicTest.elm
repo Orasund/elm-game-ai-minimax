@@ -20,16 +20,29 @@ suite =
 
                                 else
                                     Score 0
-                        , possibleMoves = \_ -> List.range 0 2
+                        , possibleMoves =
+                            \game ->
+                                if game == 1 then
+                                    []
+
+                                else
+                                    List.range 0 2
                         , searchDepth = 2
                         }
                     , alpha = Loosing
                     , beta = Winning
-                    , currentDepth = 0
+                    , currentDepth = 2
                     , isYourTurn = True
                     , game = 0
+                    , bestMove = Nothing
                     }
-                    (\_ -> Winning)
+                    (\{ game } ->
+                        if game == 1 then
+                            Loosing
+
+                        else
+                            Winning
+                    )
                     [ 0, 1, 2 ]
                     |> Expect.equal { bestMove = Just 1, maxValue = Winning }
         ]

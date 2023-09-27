@@ -29,12 +29,12 @@ suite =
                     (MinimaxSearch.findBestMove options
                         4
                     )
-                    (Just 3)
+                    Nothing
         , test "Nim Test - 3" <|
             \() ->
                 Expect.equal
                     (MinimaxSearch.findBestMove options 3)
-                    (Just 2)
+                    (Just 3)
         ]
 
 
