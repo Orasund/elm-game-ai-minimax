@@ -137,6 +137,13 @@ isBiggerThen b a =
             n1 > n2
 
 
+{-| negates a evaluation
+
+negateEvaluation Winning --> Loosing
+negateEvaluation Loosing --> Winning
+negateEvaluation (Score 42) --> Score -42
+
+-}
 negateEvaluation : Evaluation -> Evaluation
 negateEvaluation intOrInf =
     case intOrInf of
