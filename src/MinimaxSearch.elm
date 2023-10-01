@@ -1,15 +1,10 @@
-module MinimaxSearch exposing
-    ( Evaluation(..)
-    , evaluateMoves, findBestMove
-    )
+module MinimaxSearch exposing (findBestMove, Evaluation(..), negateEvaluation)
 
 {-| This library implements minimax algorithm with alpha-beta pruning.
 
-@docs minimax, Evaluation
+@docs findBestMove, Evaluation, negateEvaluation
 
 -}
-
-import Util
 
 
 {-| Evaluation of a game
@@ -18,14 +13,6 @@ type Evaluation
     = Winning
     | Loosing
     | Score Int
-
-
-type alias Options game move =
-    { searchDepth : Int
-    , evaluate : game -> Evaluation
-    , apply : move -> game -> game
-    , possibleMoves : game -> List move
-    }
 
 
 {-| Computes the best move
@@ -40,7 +27,7 @@ type alias Options game move =
 findBestMove :
     { apply : move -> game -> game
     , evaluate : game -> Evaluation
-    , possibleMoves : game -> List move
+    , possibleMoves : { isYourTurn : Bool } -> game -> List move
     , searchDepth : Int
     }
     -> game
@@ -65,7 +52,7 @@ algoMax :
     , maxDepth : Int
     , game : game
     , move : Maybe move
-    , possibleMoves : game -> List move
+    , possibleMoves : { isYourTurn : Bool } -> game -> List move
     , evaluate : game -> Evaluation
     , apply : move -> game -> game
     }
@@ -73,7 +60,8 @@ algoMax :
 algoMax args =
     let
         moves =
-            args.possibleMoves args.game
+            args.possibleMoves { isYourTurn = args.isYourTurn }
+                args.game
     in
     if args.depth == 0 || List.isEmpty moves then
         { maxValue = args.evaluate args.game
@@ -86,23 +74,22 @@ algoMax args =
                 (\move output ->
                     let
                         value =
-                            (algoMax
+                            algoMax
                                 { isYourTurn = not args.isYourTurn
                                 , depth = args.depth - 1
                                 , maxDepth = args.maxDepth
-                                , game =
-                                    args.move
-                                        |> Maybe.map (\m -> args.apply m args.game)
-                                        |> Maybe.withDefault args.game
+                                , game = args.apply move args.game
                                 , move = Just move
                                 , possibleMoves = args.possibleMoves
                                 , evaluate = args.evaluate
                                 , apply = args.apply
                                 }
-                            ).maxValue
-                                |> negate
+                                |> .maxValue
                     in
-                    if value |> isBiggerThen output.maxValue then
+                    if
+                        (args.isYourTurn && isBiggerThen output.maxValue value)
+                            || (not args.isYourTurn && isBiggerThen value output.maxValue)
+                    then
                         { maxValue = value
                         , move =
                             if args.depth == args.maxDepth then
@@ -115,111 +102,25 @@ algoMax args =
                     else
                         output
                 )
-                { maxValue = Loosing
-                , move = args.move
-                }
-
-
-computeEvaluation :
-    { options : Options game move
-    , alpha : Evaluation
-    , beta : Evaluation
-    , isYourTurn : Bool
-    , currentDepth : Int
-    , game : game
-    , bestMove : Maybe move
-    }
-    -> Evaluation
-computeEvaluation args =
-    let
-        moves =
-            args.options.possibleMoves args.game
-
-        evaluation =
-            args.options.evaluate args.game
-    in
-    if
-        List.isEmpty moves
-            || (args.currentDepth == 0)
-    then
-        evaluation
-
-    else
-        moves
-            |> evaluateMoves args computeEvaluation
-            |> .maxValue
-
-
-evaluateMoves :
-    { options : Options game move
-    , alpha : Evaluation
-    , beta : Evaluation
-    , isYourTurn : Bool
-    , currentDepth : Int
-    , bestMove : Maybe move
-    , game : game
-    }
-    ->
-        ({ options : Options game move
-         , alpha : Evaluation
-         , beta : Evaluation
-         , isYourTurn : Bool
-         , currentDepth : Int
-         , bestMove : Maybe move
-         , game : game
-         }
-         -> Evaluation
-        )
-    -> List move
-    -> { maxValue : Evaluation, bestMove : Maybe move }
-evaluateMoves args rec =
-    Util.foldlWhileOk
-        (\move { maxValue, bestMove } ->
-            let
-                evaluation =
-                    rec
-                        { options = args.options
-                        , alpha = negate args.beta
-                        , beta = negate maxValue
-                        , isYourTurn = not args.isYourTurn
-                        , currentDepth = args.currentDepth - 1
-                        , game = args.options.apply move args.game
-                        , bestMove = bestMove
-                        }
-                        |> negate
-                        |> Debug.log ("eval for depth " ++ String.fromInt args.currentDepth)
-            in
-            if evaluation |> isBiggerThen maxValue then
-                { maxValue = evaluation
-                , bestMove =
-                    if args.currentDepth == args.options.searchDepth then
-                        Just move
+                { maxValue =
+                    if args.isYourTurn then
+                        Loosing
 
                     else
-                        bestMove
+                        Winning
+                , move = Nothing
                 }
-                    |> (if
-                            (maxValue == args.beta)
-                                || (maxValue |> isBiggerThen args.beta)
-                        then
-                            Err
-
-                        else
-                            Ok
-                       )
-
-            else
-                Ok
-                    { maxValue = maxValue
-                    , bestMove = bestMove
-                    }
-        )
-        { maxValue = args.alpha, bestMove = args.bestMove }
 
 
 isBiggerThen : Evaluation -> Evaluation -> Bool
 isBiggerThen b a =
     case ( a, b ) of
+        ( Winning, Winning ) ->
+            False
+
+        ( Loosing, Loosing ) ->
+            False
+
         ( Winning, _ ) ->
             True
 
@@ -236,8 +137,8 @@ isBiggerThen b a =
             n1 > n2
 
 
-negate : Evaluation -> Evaluation
-negate intOrInf =
+negateEvaluation : Evaluation -> Evaluation
+negateEvaluation intOrInf =
     case intOrInf of
         Winning ->
             Loosing

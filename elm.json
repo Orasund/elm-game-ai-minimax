@@ -1,11 +1,11 @@
 {
     "type": "package",
-    "name": "Orasund/elm-min-max-search",
-    "summary": "AI algorithm for two player games with perfect information.",
+    "name": "Orasund/elm-game-ai-minimax",
+    "summary": "AI algorithm for turn based two player games with perfect information.",
     "license": "BSD-3-Clause",
     "version": "1.0.0",
     "exposed-modules": [
-        "MinMaxSearch"
+        "MinimaxSearch"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
